@@ -1,0 +1,13 @@
+# Defaults for metalog initscript, sourced by /etc/init.d/metalog.
+
+# If SYNC is set to "yes" metalog starts in synchronous mode logging
+# messages instantly to disk (it is the default). If it is set to "no"
+# messages are buffered in memory to improve system performance.
+SYNC=yes
+
+# Maximum kernel log level to log directly on the console, valid values
+# are from 0 (only critical) to 7 (everything, default).
+CONSOLE_LEVEL=7
+CONSOLE="/dev/tty10"
+
+FORMAT='$1 [$2] $3'

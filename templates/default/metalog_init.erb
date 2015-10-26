@@ -1,0 +1,65 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          metalog
+# Required-Start:    $remote_fs $time
+# Required-Stop:     umountnfs $time
+# X-Stop-After:      sendsigs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: metalog
+# Description:       metalog
+### END INIT INFO
+
+set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/sbin/metalog
+NAME=metalog
+DESC="Modern logging daemon"
+
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+test -x $DAEMON || exit 0
+
+# Parse configuration
+PARAMS="--daemonize --configfile="/etc/metalog.conf""
+SYNC=yes
+CONSOLE_LEVEL=7
+if [ -r /etc/default/$NAME ]; then
+        . /etc/default/$NAME
+fi
+if [ "$SYNC" != "no" ]; then
+        PARAMS="--sync $PARAMS"
+fi
+PARAMS="--consolelevel=$CONSOLE_LEVEL $PARAMS"
+
+case "$1" in
+  start)
+        echo -n "Starting $DESC: $NAME"
+        start-stop-daemon --start --quiet --pidfile $PIDFILE \
+                --exec $DAEMON -- $PARAMS
+        echo "."
+        ;;
+  stop)
+        echo -n "Stopping $DESC: $NAME"
+        start-stop-daemon --stop --quiet --pidfile $PIDFILE \
+                --exec $DAEMON
+        echo "."
+        ;;
+  restart|force-reload)
+        echo -n "Restarting $DESC: $NAME"
+        start-stop-daemon --stop --quiet --oknodo --pidfile \
+                $PIDFILE --exec $DAEMON
+        sleep 1
+        start-stop-daemon --start --quiet --pidfile \
+                $PIDFILE --exec $DAEMON -- $PARAMS
+        echo "."
+        ;;
+  *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
