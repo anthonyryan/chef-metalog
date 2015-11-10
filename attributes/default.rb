@@ -17,6 +17,7 @@
 # limitations under the License.
 
 # set metalog info
-default[:server][:metalogsrc_url] = "http://softlayer-dal.dl.sourceforge.net/project/metalog/metalog-3.tar.xz"
-default[:server][:metalogversion] = "3"
+# direct http://superb-dca2.dl.sourceforge.net/project/metalog/metalog-3.tar.xz
+default[:metalog][:metalogsrc_url] = "http://downloads.sourceforge.net/project/metalog/metalog-3.tar.xz"
+default[:metalog][:metalogversion] = "3"
 

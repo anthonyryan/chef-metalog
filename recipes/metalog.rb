@@ -1,6 +1,6 @@
 #
 # Author:: anthony ryan <anthony@tentric.com>
-# Cookbook Name:: server
+# Cookbook Name:: metalog
 #
 # Copyright 2014, Anthony Ryan
 #
@@ -38,18 +38,14 @@ end
 service "rsyslog" do
   action :stop
   ignore_failure true
-  only_if do
-    File.exists?("/etc/init.d/rsyslog")
-  end
+  only_if { ::File.exists?("/etc/init.d/rsyslog") }
 end
 
 execute "rsyslog-init-remove" do
   environment({"PATH" => "/usr/local/bin:/usr/bin:/bin:/usr/sbin:$PATH"})
   command "update-rc.d -f rsyslog remove"
   ignore_failure true
-  only_if do
-    File.exists?("/etc/init.d/rsyslog")
-  end
+  only_if { ::File.exists?("/etc/init.d/rsyslog") }
 end
 
 execute "service-pkill" do
@@ -78,8 +74,9 @@ elsif platform?('debian',"amazon","redhat","centos","fedora")
 end
 
 # install metalog from source
-metalog_src_url = "#{node['server']['metalogsrc_url']}"
-metalog_tar = "metalog-#{node['server']['metalogversion']}.tar.xz"
+# sourceforge servers appear to change due to mirror deactivation - plan to add file redundancy
+metalog_src_url = "#{node['metalog']['metalogsrc_url']}"
+metalog_tar = "metalog-#{node['metalog']['metalogversion']}.tar.xz"
 
 # download the file
 remote_file "/tmp/#{metalog_tar}" do
@@ -92,15 +89,15 @@ end
 # untar it
 execute "tar --no-same-owner -xJf #{metalog_tar}" do
   cwd "/tmp"
-  creates "/tmp/metalog-#{node['server']['metalogversion']}"
+  creates "/tmp/metalog-#{node['metalog']['metalogversion']}"
 end
 
 # run configure
 execute "metalog configure" do
   environment({"PATH" => "/usr/local/bin:/usr/bin:/bin:/usr/sbin:$PATH"})
   command "./configure --prefix=/usr"
-  cwd "/tmp/metalog-#{node['server']['metalogversion']}"
-  creates "/tmp/metalog-#{node['server']['metalogversion']}/src/metalog"
+  cwd "/tmp/metalog-#{node['metalog']['metalogversion']}"
+  creates "/tmp/metalog-#{node['metalog']['metalogversion']}/src/metalog"
   ignore_failure true
 end
 
@@ -108,7 +105,7 @@ end
 execute "metalog make install" do
   environment({"PATH" => "/usr/local/bin:/usr/bin:/bin:/usr/sbin:$PATH"})
   command "make install"
-  cwd "/tmp/metalog-#{node['server']['metalogversion']}"
+  cwd "/tmp/metalog-#{node['metalog']['metalogversion']}"
   creates "/usr/sbin/metalog"
   ignore_failure true
 end
@@ -149,7 +146,7 @@ template 'metalog init' do
 end
 
 # turn on metalog for auto start
-execute "metalog on" do
+execute "metalog auto-start" do
   user 'root'
   environment({"PATH" => "/usr/local/bin:/usr/bin:/bin:/usr/sbin:$PATH"})
   command "update-rc.d metalog defaults"
@@ -160,9 +157,7 @@ end
 file "/usr/etc/metalog.conf" do
   action :delete
   backup false
-  only_if do
-    File.exists?("/usr/etc/metalog.conf")
-  end
+  only_if { ::File.exists?("/usr/etc/metalog.conf") }
 end
 
 # clean up old logs
